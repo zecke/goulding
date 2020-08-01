@@ -1,0 +1,6 @@
+canary: "demo_canary_node"
+
+parameters: <
+	key: "instance"
+	value: "demo.robustperception.io:9090"
+>

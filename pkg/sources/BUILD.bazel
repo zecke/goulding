@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "http.go",
+        "prometheus.go",
+        "sources.go",
+    ],
+    importpath = "github.com/zecke/goulding/pkg/sources",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/judges:go_default_library",
+        "//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_prometheus_client_golang//api:go_default_library",
+        "@com_github_prometheus_client_golang//api/prometheus/v1:go_default_library",
+        "@com_github_prometheus_common//model:go_default_library",
+    ],
+)

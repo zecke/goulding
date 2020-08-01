@@ -1,0 +1,36 @@
+canary_config: <
+    canary_name: "demo_canary_node"
+    canarying_time: <
+        seconds: 60
+    >
+    sources: <
+        source_name: "up_signal"
+        execution_mode: MODE_SINGLESHOT
+        prometheus_source: <
+            query: "sum_over_time(up{job=\"prometheus\"}[1m]) / count_over_time(up{job=\"prometheus\"}[1m]) > bool 0.9"
+            server: "http://demo.robustperception.io:9090/"
+        >
+    >
+    sources: <
+        source_name: "health_signal"
+        execution_mode: MODE_PERIODIC
+        interval: <
+            seconds: 2
+        >
+        health_source: <
+            url: "http://{{.instance}}/-/healthy"
+        >
+    >
+
+    primitive_judge: <
+        judge_name: "up_judge"
+    >
+
+    pass_actions: <
+        action_name: "bless_rollout"
+        webhook: <
+            url: "http://localhost:8080/blessings"
+            method: "POST"
+        >
+    >
+>

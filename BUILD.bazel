@@ -1,0 +1,13 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/zecke/goulding
+gazelle(name = "gazelle")
+
+load("@io_bazel_rules_go//go:def.bzl", "nogo", "TOOLS_NOGO")
+
+nogo(
+    name = "nogo",
+    #deps = TOOLS_NOGO,
+    vet = True,
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+
+package goulding.proto;
+
+// The set of configured canaries.
+message CanaryConfigs {
+    repeated CanaryConfig canary_config = 1;
+
+    // TODO(freyth): Take the hashicorp gossip stuff... for replicating it.
+};
+
+// A single canary configuration.
+message CanaryConfig {
+    // A unique name of the canary config.
+    string canary_name = 1;
+
+    // The time to canary.
+    google.protobuf.Duration canarying_time = 3; 
+
+    // Sources to check during the canary time.
+    repeated Source sources = 4;
+
+    oneof oneof_judge {
+        PrimitiveJudge primitive_judge = 7;
+    }
+
+    // === Action to execute on either pass/fail of the canary test
+    // Actions to execute when passing the canary. They may be
+    // executed in any order.
+    repeated Action pass_actions = 5;
+
+    // Actions to execute when the canary triggered. They may
+    // be execited in any order.
+    repeated Action fail_actions = 6;
+};
+
+
+// A primitive judge that can not be greatly configured right
+// now. It doesn't do any meaningful statistics.
+message PrimitiveJudge {
+	string judge_name = 1;
+
+	// Each source needs to have success >= the specified theshold
+	double per_source_success_threshold = 2;
+
+	// TODO(freyth): Some configs. E.g. All/Avg/Mediam/Max
+	// per collected source...
+}
+
+
+// A source to check and collect for data. This can be a single
+// shot or periodic.
+message Source {
+    // A name of the source.
+    string source_name = 1;
+
+    enum Mode {
+        // Execute the source _once_ before judging it.
+        MODE_SINGLESHOT = 0;
+        // Execute the source throughout the canary window and
+        // record the results.
+        MODE_PERIODIC = 2;
+    }
+    Mode execution_mode = 2;
+
+    // For MODE_PERIODIC.. execution interval
+    google.protobuf.Duration interval = 3;
+
+    oneof source_oneof {
+        // Make a prometheus query..
+        PrometheusSource prometheus_source = 4;
+        // Make a HTTP health check. 
+        HttpHealthSource health_source = 5;
+    }
+}
+
+message PrometheusSource {
+    // A full query to execute.
+    string query = 1;
+    string server = 2;
+}
+
+message HttpHealthSource {
+    // A HTTP health check to execute
+    string url = 1;
+}
+
+// An action to execute.
+message Action {
+    // A name of the action.
+    string action_name = 1;
+
+    oneof action_oneof {
+        // a webhook to execute
+        WebHookAction webhook = 2;
+
+        // Catch all action
+        google.protobuf.Any any_action = 3;
+    }
+}
+
+// A webhook action to execute.
+message WebHookAction {
+    string url = 1;
+    string method = 2;
+    // TODO(zecke): Add timeout, retry, back-off handling..
+}
